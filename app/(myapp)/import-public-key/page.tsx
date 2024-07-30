@@ -13,7 +13,7 @@ mQGNBGaTvVsBDADZQTd3aWlBH3RmyZCqEL5URrLIBgT8i44F0UsktvoJCxRT7Y9B
 TKHcryIoIseTjkJxIoF2nSxC64ytG7b1FlM1bx7dskFOa8ASpjpLZ2o4xPoKDpoz
 ... you got it !`;
 
-export default function importPublicKeyPage() {
+export default function ImportPublicKeyPage() {
   // * nos refs
   const inputref = useRef<HTMLInputElement>(null);
 
