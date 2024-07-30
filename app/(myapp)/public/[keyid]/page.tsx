@@ -8,15 +8,15 @@ export default function PublicKeyPage({
 }: {
   params: { keyid: string };
 }) {
-  const getPublicKey = useKeyStore((store) => store.getPublicKeyFromPublicKeys);
-
   const [publicKey, setPublicKey] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     const init = async () => {
       try {
-        const armoredPublicKey = await getPublicKey(keyid);
+        const armoredPublicKey = await useKeyStore
+          .getState()
+          .getPublicKeyFromPublicKeys(keyid);
 
         setPublicKey(armoredPublicKey);
       } catch {
@@ -24,7 +24,7 @@ export default function PublicKeyPage({
       }
     };
     init();
-  }, []);
+  }, [, setPublicKey]);
   const handleCipher = async () => {
     const key = await openpgp.readKey({ armoredKey: publicKey });
     const encryptedMsg = await openpgp.encrypt({

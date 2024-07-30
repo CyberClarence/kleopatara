@@ -1,4 +1,4 @@
-export default function () {
+export default function CreatePrivateKeyPage() {
   return (
     <div className="w-full h-full text-white flex items-center flex-col">
       <h2>Create a new PGP RSA private Key</h2>
