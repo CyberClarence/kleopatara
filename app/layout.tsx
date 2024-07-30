@@ -5,8 +5,9 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kleopatra",
-  description: "",
+  title: "Kleopatra PGP Client",
+  description:
+    "OpenSource, Free, Private & easy to use OPENPGP Client for the internet",
 };
 
 export default function RootLayout({
@@ -16,10 +17,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`flex flex-col overflow-auto w-screen h-screen bg-black text-white ${inter.className}`}>{children}</body>
+      <body
+        className={`flex flex-col overflow-auto w-screen h-screen bg-black text-white ${inter.className} select-none`}
+      >
+        {children}
+      </body>
     </html>
   );
 }
-
-
-
