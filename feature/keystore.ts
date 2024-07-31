@@ -23,10 +23,14 @@ type KeyStoreData = {
 };
 
 type KeyStoreActions = {
-  createNewKey: (keyname: string) => Promise<void>;
   importPublicKey: (keyname: string, armoredKeyString: string) => Promise<void>;
-  getPublicKeyFromPrivateKeys: (name: string) => Promise<string>;
-  getPublicKeyFromPublicKeys: (name: string) => Promise<string>;
+  importPrivateKey: (
+    keyname: string,
+    armoredKeyString: string
+  ) => Promise<void>;
+  getPrivateKeyFromMyPrivateKeys: (name: string) => Promise<string>;
+  getPublicKeyFromMyPrivateKeys: (name: string) => Promise<string>;
+  getPublicKeyFromMyPublicKeys: (name: string) => Promise<string>;
 };
 
 type KeyStoreInterface = KeyStoreData & KeyStoreActions;
@@ -64,12 +68,41 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
 
     set({ myPublicKeys: [...myPublicKeys, newKey] });
   },
-  getPublicKeyFromPrivateKeys: async (keyname) => {
+  importPrivateKey: async (keyname, amoredPublicKeyString) => {
+    const key = await openpgp.readKey({ armoredKey: amoredPublicKeyString });
+    const { myPrivateKeys } = get();
+
+    const alreadyExist = myPrivateKeys.find((key) => key.id == keyname);
+
+    if (alreadyExist) throw new Error("this key id is already used");
+
+    const newKey: SerialisablePublicKey = {
+      id: keyname,
+      key: amoredPublicKeyString,
+    };
+
+    set({ myPrivateKeys: [...myPrivateKeys, newKey] });
+  },
+  getPrivateKeyFromMyPrivateKeys: async (keyname) => {
     const { myPrivateKeys } = get();
 
     const key = myPrivateKeys.find((key) => key.id == keyname);
 
-    if (!key) throw new Error("no key found with that id");
+    alert(JSON.stringify(key));
+    if (!key) throw new Error("no key found with that id (" + keyname + ")");
+
+    const privateKey = await openpgp.readPrivateKey({
+      armoredKey: key.key,
+    });
+
+    return key.key;
+  },
+  getPublicKeyFromMyPrivateKeys: async (keyname) => {
+    const { myPrivateKeys } = get();
+
+    const key = myPrivateKeys.find((key) => key.id == keyname);
+
+    if (!key) throw new Error("no key found with that id(" + keyname + ")");
 
     const privateKey = await openpgp.readPrivateKey({
       armoredKey: key.key,
@@ -77,9 +110,9 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
 
     const { armor } = privateKey.toPublic();
 
-    return armor();
+    return armor() || "fuck you myself";
   },
-  getPublicKeyFromPublicKeys: async (keyname) => {
+  getPublicKeyFromMyPublicKeys: async (keyname) => {
     const { myPublicKeys } = get();
 
     const foundKey = myPublicKeys.find((key) => key.id == keyname);

@@ -16,7 +16,7 @@ export default function PublicKeyPage({
       try {
         const armoredPublicKey = await useKeyStore
           .getState()
-          .getPublicKeyFromPublicKeys(keyid);
+          .getPublicKeyFromMyPublicKeys(keyid);
 
         setPublicKey(armoredPublicKey);
       } catch {
