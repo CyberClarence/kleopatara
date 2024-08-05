@@ -9,7 +9,14 @@ import KeyImporter from "@/components/KeyImporter";
 
 const TEXTAREA_EXPLAINATORY_TEXT = `write down you private key here
 exemple:
+-----BEGIN PGP PRIVATE KEY BLOCK-----
 
+lQVYBGaTvVsBDADZQTd3aWlBH3RmyZCqEL5URrLIBgT8i44F0UsktvoJCxRT7Y9B
+TKHcryIoIseTjkJxIoF2nSxC64ytG7b1FlM1bx7dskFOa8ASpjpLZ2o4xPoKDpoz
+2x/ysZN/nROSXuzFcf82OVEwhigMnZyVME6SgC7NzythE31/1H8dr5yaOtvv5Czw
+Z4mkzAFcUJY+8E9XJ44B3gxc28ArzaTR1hOqSoCo8KxNGIGiDchUfFS9r2X1Ld3L
+2Q7o38Hls0AaKZFOUx6pm4FB0FXxi4wGKAczVKWyWWtUJ6W7FwKX8/sJJUQIfvx4
+....
 `;
 
 export default function ImportNewPrivateKey() {

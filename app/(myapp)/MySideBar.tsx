@@ -10,9 +10,6 @@ export const MySideBar = () => {
 
   useEffect(() => {
     useKeyStore.persist.rehydrate();
-
-    console.log(Object.keys(myPrivateKeys));
-    console.log({ myPrivateKeys });
   }, []);
 
   return (

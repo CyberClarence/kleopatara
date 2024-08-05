@@ -8,46 +8,54 @@ export default function PrivateKeyPage({
 }: {
   params: { keyid: string };
 }) {
-  const [privateKey, setPrivateKey] = useState("");
-  const [publicKey, setPublicKey] = useState("");
+  const [privateKey, setPrivateKey] = useState("loading...");
+  const [publicKey, setPublicKey] = useState("loading...");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    const init = async () => {
+    const init0 = async () => {
       try {
-        setPublicKey("private key is loading ...");
         const armoredPrivateKey = await useKeyStore
           .getState()
           .getPrivateKeyFromMyPrivateKeys(keyid);
-        setPublicKey("public key is loading ...");
-
-        const armoredPublicKey = await useKeyStore
-          .getState()
-          .getPublicKeyFromMyPrivateKeys(keyid);
 
         setPrivateKey(armoredPrivateKey);
-        setPublicKey("private key set");
-        setPublicKey(armoredPublicKey);
-      } catch {
-        setPrivateKey("no key found with that id ");
+      } catch (err) {
+        setPrivateKey(`Error: ${err}`);
       }
     };
-    init();
-  }, [, setPrivateKey]);
+    const init1 = async () => {
+      setPublicKey("loading yes !");
+      try {
+        const myKeyStore = await useKeyStore.getState();
+        const armoredPublicKey = await myKeyStore.getPublicKeyFromMyPrivateKeys(
+          keyid
+        );
+        console.log(armoredPublicKey);
+
+        setPublicKey(armoredPublicKey);
+      } catch (err) {
+        setPublicKey(`Error: ${err}`);
+      }
+    };
+    init0();
+    init1();
+  }, []);
   const handleCipher = async () => {
     try {
       var pgpMessage = await openpgp.readMessage({
-        armoredMessage: pgpMessage,
+        armoredMessage: message,
       });
     } catch {
       return alert("le message n'est pas du PGP");
     }
     const key = await openpgp.readPrivateKey({ armoredKey: privateKey });
-    const encryptedMsg = await openpgp.decrypt({
+    const { data } = await openpgp.decrypt({
       decryptionKeys: key,
       message: pgpMessage,
     });
-    setMessage(encryptedMsg.toString());
+
+    setMessage(data.toString());
   };
 
   return (
@@ -55,11 +63,19 @@ export default function PrivateKeyPage({
       <h2 className="underline text-2xl"> clef de {keyid}</h2>
       <div className="p-2 border h-full w-full overflow-auto ">
         <div className="flex h-1/2 w-full flex-col border">
-          <h3 className="flex">Public key to share to your friend</h3>
+          <h3 className="flex">
+            Your public key{" "}
+            {
+              "(share it to your friend so he can send you chiphered messages than only you can decrypt with this key)"
+            }
+          </h3>
           <textarea
             className="flex h-full w-full text-white bg-gray-800 border p-2 rounded"
-            value={privateKey}
-            disabled={true}
+            onChange={() => {
+              // tu fais rien ok c'est normal et comme ça on a pas de warning dans la console
+            }}
+            value={publicKey}
+            disabled={false}
           />
         </div>
         <div className="flex w-full h-1/2 flex-col">

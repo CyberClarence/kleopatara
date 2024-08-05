@@ -39,7 +39,7 @@ export default function PublicKeyPage({
       <h2 className="underline text-2xl"> clef de {keyid}</h2>
       <div className="p-2 border h-full w-full overflow-auto ">
         <div className="flex h-1/2 w-full flex-col border">
-          <h3 className="flex">Clef public</h3>
+          <h3 className="flex">Public Key</h3>
           <textarea
             className="flex h-full w-full text-white bg-gray-800 border p-2 rounded"
             value={publicKey}
@@ -47,7 +47,7 @@ export default function PublicKeyPage({
           />
         </div>
         <div className="flex w-full h-1/2 flex-col">
-          <h2>chiffrement</h2>
+          <h2>Cipher a message for your friend that only him can decipher</h2>
           <div className="flex w-full h-full gap-2">
             <textarea
               value={message}

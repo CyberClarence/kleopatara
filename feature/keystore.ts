@@ -88,14 +88,13 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
 
     const key = myPrivateKeys.find((key) => key.id == keyname);
 
-    alert(JSON.stringify(key));
     if (!key) throw new Error("no key found with that id (" + keyname + ")");
 
     const privateKey = await openpgp.readPrivateKey({
       armoredKey: key.key,
     });
 
-    return key.key;
+    return key.key.toString();
   },
   getPublicKeyFromMyPrivateKeys: async (keyname) => {
     const { myPrivateKeys } = get();
@@ -107,10 +106,11 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
     const privateKey = await openpgp.readPrivateKey({
       armoredKey: key.key,
     });
+    const publicKey = privateKey.toPublic();
 
-    const { armor } = privateKey.toPublic();
+    const publicKeyArmorStringFormat = publicKey.armor();
 
-    return armor() || "fuck you myself";
+    return publicKeyArmorStringFormat;
   },
   getPublicKeyFromMyPublicKeys: async (keyname) => {
     const { myPublicKeys } = get();
