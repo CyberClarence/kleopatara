@@ -46,7 +46,7 @@ export const MySideBar = () => {
                 key={i}
                 className="px-4 py-3 rounded-xl hover:bg-purple-400/15 text-purple-100/90 text-sm transition-all duration-300 hover:translate-x-1 hover:shadow-lg hover:shadow-purple-500/10 active:scale-[0.99]"
               >
-                {key.id}
+                {key.keyname || key.id}
               </Link>
             ))}
           </div>
@@ -86,7 +86,7 @@ export const MySideBar = () => {
                 key={i}
                 className="px-4 py-3 rounded-xl hover:bg-purple-400/15 text-purple-100/90 text-sm transition-all duration-300 hover:translate-x-1 hover:shadow-lg hover:shadow-purple-500/10 active:scale-[0.99]"
               >
-                {key.id}
+                {key.keyname || key.id}
               </Link>
             ))}
           </div>
