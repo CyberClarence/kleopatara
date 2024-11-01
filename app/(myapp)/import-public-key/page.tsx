@@ -35,7 +35,6 @@ export default function ImportPublicKeyPage() {
       }
 
       const newKey = await importPublicKeyToMyStore(keyName, keyString);
-      console.warn({ newKey });
       router.push(`/public/${newKey.id}`);
     } catch (err) {
       setError("Invalid public key format. Please check and try again.");
@@ -44,95 +43,101 @@ export default function ImportPublicKeyPage() {
     }
   };
 
-  const handleVerifySignature = async () => {
-    setShowVerifyDialog(true);
-  };
-
-  const handleDeleteKey = async () => {
-    setShowDeleteDialog(true);
-  };
-
   return (
-    <div className="w-full h-full p-6 bg-[#0A192F] text-cyan-50">
-      <div className="max-w-6xl mx-auto space-y-8 h-full overflow-auto">
-        <KeyImporter
-          heading={
-            <header className="flex items-center space-x-3 mb-8">
-              <Key className="w-8 h-8 text-cyan-400" />
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+    <div className="relative  w-full bg-[#0A192F] text-cyan-50 h-full">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 h-full">
+        <div className="flex flex-col space-y-6 sm:space-y-8 h-full">
+          {/* Header Section */}
+          <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 sm:p-3 rounded-xl bg-cyan-500/10 shadow-inner">
+                <Key className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 Import a new Public Key
               </h1>
-            </header>
-          }
-          textareaPlaceholder={TEXTAREA_EXPLAINATORY_TEXT}
-          validateImportButtonLabel={
-            <span className="flex items-center gap-2">
-              <Key className="w-4 h-4" />
-              Validate & Import
-            </span>
-          }
-          validateImportHandler={handleKeyImport}
-        />
-
-        {isLoading && (
-          <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-slate-800 border border-cyan-800/30 rounded-lg p-6 flex flex-col items-center space-y-4">
-              <LoadingSpinner className="w-8 h-8 text-cyan-400" />
-              <p className="text-cyan-300">Processing public key...</p>
             </div>
-          </div>
-        )}
+          </header>
 
-        {error && (
-          <div className="fixed bottom-4 right-4 bg-red-900/90 text-red-100 p-4 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom">
-            <AlertCircle className="w-5 h-5" />
-            {error}
-          </div>
-        )}
-
-        <Dialog
-          isOpen={showVerifyDialog}
-          onClose={() => setShowVerifyDialog(false)}
-          title="Verify Digital Signature"
-        >
-          <div className="space-y-4">
-            <p className="text-cyan-300">
-              Paste the signature you want to verify with this public key.
-            </p>
-            <textarea
-              className="w-full h-32 bg-slate-800 border border-cyan-800/30 rounded-lg p-3 text-cyan-100"
-              placeholder="Paste signature here..."
+          {/* Main Content */}
+          <div className="grid gap-6 sm:gap-8 h-full w-full overflow-auto">
+            <KeyImporter
+              heading={<div className="sr-only">Import Public Key Form</div>}
+              textareaPlaceholder={TEXTAREA_EXPLAINATORY_TEXT}
+              validateImportButtonLabel={
+                <span className="flex items-center gap-2">
+                  <Key className="w-4 h-4" />
+                  <span className="hidden sm:inline">Validate &</span> Import
+                </span>
+              }
+              validateImportHandler={handleKeyImport}
             />
-            <button className="w-full py-2 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors">
-              Verify Signature
+          </div>
+        </div>
+      </div>
+
+      {/* Floating Elements */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-800 border border-cyan-800/30 rounded-lg p-4 sm:p-6 flex flex-col items-center space-y-3 sm:space-y-4 max-w-[90vw] sm:max-w-md">
+            <LoadingSpinner className="w-6 h-6 sm:w-8 sm:h-8 text-cyan-400" />
+            <p className="text-cyan-300 text-sm sm:text-base text-center">
+              Processing public key...
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed bottom-4 right-4 max-w-[calc(100vw-2rem)] sm:max-w-md bg-red-900/90 text-red-100 p-3 sm:p-4 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom shadow-lg">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm sm:text-base line-clamp-3">{error}</p>
+        </div>
+      )}
+
+      {/* Dialogs */}
+      <Dialog
+        isOpen={showVerifyDialog}
+        onClose={() => setShowVerifyDialog(false)}
+        title="Verify Digital Signature"
+      >
+        <div className="space-y-4">
+          <p className="text-cyan-300 text-sm sm:text-base">
+            Paste the signature you want to verify with this public key.
+          </p>
+          <textarea
+            className="w-full h-32 sm:h-40 bg-slate-800 border border-cyan-800/30 rounded-lg p-3 text-cyan-100 text-sm resize-none focus:ring-2 focus:ring-cyan-500/50 focus:outline-none"
+            placeholder="Paste signature here..."
+          />
+          <button className="w-full py-2.5 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors text-white font-medium">
+            Verify Signature
+          </button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        title="Delete Public Key"
+      >
+        <div className="space-y-4">
+          <p className="text-red-300 text-sm sm:text-base">
+            Are you sure you want to delete this public key? This action cannot
+            be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteDialog(false)}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors text-sm sm:text-base font-medium"
+            >
+              Cancel
+            </button>
+            <button className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors text-sm sm:text-base font-medium">
+              Delete
             </button>
           </div>
-        </Dialog>
-
-        <Dialog
-          isOpen={showDeleteDialog}
-          onClose={() => setShowDeleteDialog(false)}
-          title="Delete Public Key"
-        >
-          <div className="space-y-4">
-            <p className="text-red-300">
-              Are you sure you want to delete this public key? This action
-              cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteDialog(false)}
-                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
-                Delete
-              </button>
-            </div>
-          </div>
-        </Dialog>
-      </div>
+        </div>
+      </Dialog>
     </div>
   );
 }
