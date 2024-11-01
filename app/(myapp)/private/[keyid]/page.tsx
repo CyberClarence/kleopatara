@@ -56,7 +56,7 @@ export default function PrivateKeyPage({
     loadKeys();
   }, [keyid]);
 
-  const handleCipher = async () => {
+  const handleDecipher = async () => {
     if (!message.trim()) {
       setError("Please enter a message to decrypt");
       return;
@@ -74,7 +74,7 @@ export default function PrivateKeyPage({
       });
       setMessage(data.toString());
     } catch (err) {
-      setError("Failed to decrypt message. Is this a valid PGP message?");
+      setError("Failed to decrypt message. (Signed for the wrong key?))");
     } finally {
       setIsLoading(false);
     }
@@ -191,7 +191,7 @@ export default function PrivateKeyPage({
               className="w-full h-full resize-none rounded-lg bg-slate-800/50 border border-cyan-800/30 p-4 text-cyan-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
             />
             <button
-              onClick={handleCipher}
+              onClick={handleDecipher}
               disabled={!message.trim()}
               className="absolute right-4 bottom-4 px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors flex items-center gap-2"
             >

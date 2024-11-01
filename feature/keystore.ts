@@ -1,4 +1,5 @@
 "use client";
+import { randomUUID } from "crypto";
 import * as openpgp from "openpgp";
 import { create, StateCreator } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
@@ -9,11 +10,13 @@ type ArmoredPublicKey = string;
 
 type SerialisablePrivateKey = {
   id: string;
+  keyname?: string
   key: ArmoredRSAPrivateKey;
 };
 
 type SerialisablePublicKey = {
   id: string;
+  keyname?: string;
   key: ArmoredPublicKey;
 };
 
@@ -48,7 +51,8 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
       });
 
     const myNewPrivateKey: SerialisablePrivateKey = {
-      id: name,
+      id: randomUUID(),
+      keyname: name || "unamed",
       key: privateKey,
     };
     set({
@@ -64,7 +68,8 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
     if (alreadyExist) throw new Error("this key id is already used");
 
     const newKey: SerialisablePublicKey = {
-      id: keyname,
+      id: randomUUID(),
+      keyname: keyname || "unamed",
       key: amoredPublicKeyString,
     };
 
@@ -85,12 +90,12 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
 
     set({ myPrivateKeys: [...myPrivateKeys, newKey] });
   },
-  getPrivateKeyFromMyPrivateKeys: async (keyname) => {
+  getPrivateKeyFromMyPrivateKeys: async (keyid) => {
     const { myPrivateKeys } = get();
 
-    const key = myPrivateKeys.find((key) => key.id == keyname);
+    const key = myPrivateKeys.find((key) => key.id == keyid);
 
-    if (!key) throw new Error("no key found with that id (" + keyname + ")");
+    if (!key) throw new Error("no key found with that id (" + keyid + ")");
 
     const privateKey = await openpgp.readPrivateKey({
       armoredKey: key.key,
