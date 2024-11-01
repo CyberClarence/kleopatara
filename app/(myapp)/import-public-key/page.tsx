@@ -1,6 +1,6 @@
 "use client";
 import * as openpgp from "openpgp";
-import { Shield, Key, AlertCircle, FileCheck, Trash2 } from "lucide-react";
+import { Key, AlertCircle, FileCheck, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useKeyStore } from "@/feature/keystore";
 import { useRouter } from "next/navigation";
@@ -34,8 +34,9 @@ export default function ImportPublicKeyPage() {
         return;
       }
 
-      await importPublicKeyToMyStore(keyName, keyString);
-      router.push(`/public/${keyName}`);
+      const newKey = await importPublicKeyToMyStore(keyName, keyString);
+      console.warn({ newKey });
+      router.push(`/public/${newKey.id}`);
     } catch (err) {
       setError("Invalid public key format. Please check and try again.");
     } finally {
@@ -53,35 +54,16 @@ export default function ImportPublicKeyPage() {
 
   return (
     <div className="w-full h-full p-6 bg-[#0A192F] text-cyan-50">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="flex justify-between items-center">
-          <header className="flex items-center space-x-3">
-            <Shield className="w-8 h-8 text-cyan-400" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-              Import Public Key
-            </h1>
-          </header>
-
-          <div className="flex gap-4">
-            <button
-              onClick={handleVerifySignature}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all"
-            >
-              <FileCheck className="w-4 h-4" />
-              Verify Signature
-            </button>
-            <button
-              onClick={handleDeleteKey}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-all"
-            >
-              <Trash2 className="w-4 h-4" />
-              Delete Key
-            </button>
-          </div>
-        </div>
-
+      <div className="max-w-6xl mx-auto space-y-8 h-full overflow-auto">
         <KeyImporter
-          heading={null}
+          heading={
+            <header className="flex items-center space-x-3 mb-8">
+              <Key className="w-8 h-8 text-cyan-400" />
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                Import a new Public Key
+              </h1>
+            </header>
+          }
           textareaPlaceholder={TEXTAREA_EXPLAINATORY_TEXT}
           validateImportButtonLabel={
             <span className="flex items-center gap-2">

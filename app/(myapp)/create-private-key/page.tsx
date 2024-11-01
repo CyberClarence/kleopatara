@@ -33,9 +33,11 @@ export default function ImportNewPrivateKey() {
         return;
       }
 
-      await importNewPrivateKeyToMyStore(keyName, keyString);
-      router.push(`/private/${keyName}`);
+      const newKey = await importNewPrivateKeyToMyStore(keyName, keyString);
+      console.warn({ newKey });
+      router.push(`/private/${newKey.id}`);
     } catch (err) {
+      console.error(err);
       setError("Invalid private key format. Please check and try again.");
     } finally {
       setIsLoading(false);
@@ -77,14 +79,14 @@ export default function ImportNewPrivateKey() {
         }
         validateImportHandler={handleKeyImport}
         generateRandomKeyHandler={generateRandomKeyHandler}
-        generateRandomKeyLabel="Generate New Secure Key"
+        generateRandomKeyLabel="Generate New Private Key"
       />
 
       {isLoading && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
           <div className="bg-slate-900 p-6 rounded-lg border border-cyan-800/30">
             <LoadingSpinner className="w-8 h-8 text-cyan-400" />
-            <p className="mt-2 text-cyan-300">Processing your secure key...</p>
+            <p className="mt-2 text-cyan-300">Processing your private key...</p>
           </div>
         </div>
       )}

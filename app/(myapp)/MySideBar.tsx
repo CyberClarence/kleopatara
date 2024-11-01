@@ -2,15 +2,17 @@
 
 import { useKeyStore } from "@/feature/keystore";
 import Link from "next/link";
-import { useEffect } from "react";
-import { KeyRound, Users, Plus, Shield } from "lucide-react";
+import { useEffect, useState } from "react";
+import { KeyRound, Users, Plus, Shield, Loader2 } from "lucide-react";
 
 export const MySideBar = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const myPrivateKeys = useKeyStore((s) => s.myPrivateKeys);
   const myFriendPublicKeys = useKeyStore((s) => s.myPublicKeys);
 
   useEffect(() => {
     useKeyStore.persist.rehydrate();
+    setIsLoading(false);
   }, []);
 
   return (
@@ -38,7 +40,11 @@ export const MySideBar = () => {
           </Link>
         </div>
 
-        {myPrivateKeys.length ? (
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
+          </div>
+        ) : myPrivateKeys.length ? (
           <div className="flex flex-col p-3 space-y-1">
             {myPrivateKeys.map((key, i) => (
               <Link
@@ -78,7 +84,11 @@ export const MySideBar = () => {
           </Link>
         </div>
 
-        {myFriendPublicKeys.length ? (
+        {isLoading ? (
+          <div className="h-full flex items-center justify-center p-8">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+          </div>
+        ) : myFriendPublicKeys.length ? (
           <div className="flex flex-col p-3 space-y-1">
             {myFriendPublicKeys.map((key, i) => (
               <Link

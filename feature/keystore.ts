@@ -26,11 +26,8 @@ type KeyStoreData = {
 };
 
 type KeyStoreActions = {
-  importPublicKey: (keyname: string, armoredKeyString: string) => Promise<void>;
-  importPrivateKey: (
-    keyname: string,
-    armoredKeyString: string
-  ) => Promise<void>;
+  importPublicKey: (keyname: string, armoredKeyString: string) => Promise<SerialisablePublicKey>;
+  importPrivateKey: (keyname: string, armoredKeyString: string) => Promise<SerialisablePrivateKey>;
   getPrivateKeyFromMyPrivateKeys: (name: string) => Promise<string>;
   getPublicKeyFromMyPrivateKeys: (name: string) => Promise<string>;
   getPublicKeyFromMyPublicKeys: (name: string) => Promise<string>;
@@ -51,7 +48,7 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
       });
 
     const myNewPrivateKey: SerialisablePrivateKey = {
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       keyname: name || "unamed",
       key: privateKey,
     };
@@ -68,12 +65,13 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
     if (alreadyExist) throw new Error("this key id is already used");
 
     const newKey: SerialisablePublicKey = {
-      id: randomUUID(),
+      id: crypto.randomUUID(),
       keyname: keyname || "unamed",
       key: amoredPublicKeyString,
     };
 
     set({ myPublicKeys: [...myPublicKeys, newKey] });
+    return newKey;
   },
   importPrivateKey: async (keyname, amoredPublicKeyString) => {
     const key = await openpgp.readKey({ armoredKey: amoredPublicKeyString });
@@ -83,12 +81,14 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
 
     if (alreadyExist) throw new Error("this key id is already used");
 
-    const newKey: SerialisablePublicKey = {
-      id: keyname,
+    const newKey: SerialisablePrivateKey = {
+      id: crypto.randomUUID(),
+      keyname: keyname || "unamed",
       key: amoredPublicKeyString,
     };
 
     set({ myPrivateKeys: [...myPrivateKeys, newKey] });
+    return newKey;
   },
   getPrivateKeyFromMyPrivateKeys: async (keyid) => {
     const { myPrivateKeys } = get();

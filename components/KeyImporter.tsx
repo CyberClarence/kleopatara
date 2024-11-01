@@ -123,7 +123,9 @@ export default function KeyImporter(props: KeyImporterComponentProps) {
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-slate-800 border border-cyan-800/30 rounded-lg p-6 flex flex-col items-center space-y-4">
             <LoadingSpinner className="w-8 h-8 text-cyan-400" />
-            <p className="text-cyan-100">Processing your secure key...</p>
+            <p className="text-cyan-100">
+              Please wait while we are processing your key...
+            </p>
           </div>
         </div>
       )}
