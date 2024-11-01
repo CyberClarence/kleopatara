@@ -21,6 +21,7 @@ export default function PublicKeyPage({
   params: { keyid: string };
 }) {
   const [publicKey, setPublicKey] = useState("");
+  const [keyname, setKeyname] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +39,8 @@ export default function PublicKeyPage({
         const armoredPublicKey = await useKeyStore
           .getState()
           .getPublicKeyFromMyPublicKeys(keyid);
-        setPublicKey(armoredPublicKey);
+        setPublicKey(armoredPublicKey.key);
+        setKeyname(armoredPublicKey.keyname);
       } catch (err) {
         setError("Failed to load public key");
         setPublicKey("");
@@ -51,7 +53,7 @@ export default function PublicKeyPage({
 
   const handleCipher = async () => {
     if (!message.trim()) {
-      setError("Please enter a message to encrypt");
+      setError("Please enter a message to decipher");
       return;
     }
 
@@ -64,7 +66,7 @@ export default function PublicKeyPage({
       });
       setMessage(encryptedMsg.toString());
     } catch (err) {
-      setError("Encryption failed. Please try again.");
+      setError("Ciphering operation failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -128,7 +130,7 @@ export default function PublicKeyPage({
             <Shield className="w-6 h-6 text-cyan-400" />
           </div>
           <h1 className="text-2xl font-bold text-cyan-50">
-            Public Key: <span className="text-cyan-400">{keyid}</span>
+            Public Key: <span className="text-cyan-400">{keyname}</span>
           </h1>
         </div>
 
@@ -183,7 +185,7 @@ export default function PublicKeyPage({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               className="w-full h-full resize-none rounded-lg bg-slate-800/50 border border-cyan-800/30 p-4 text-cyan-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-              placeholder="Enter your message to encrypt..."
+              placeholder="Enter a message to cipher..."
             />
             <button
               onClick={handleCipher}

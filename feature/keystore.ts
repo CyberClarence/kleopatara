@@ -28,9 +28,9 @@ type KeyStoreData = {
 type KeyStoreActions = {
   importPublicKey: (keyname: string, armoredKeyString: string) => Promise<SerialisablePublicKey>;
   importPrivateKey: (keyname: string, armoredKeyString: string) => Promise<SerialisablePrivateKey>;
-  getPrivateKeyFromMyPrivateKeys: (name: string) => Promise<string>;
-  getPublicKeyFromMyPrivateKeys: (name: string) => Promise<string>;
-  getPublicKeyFromMyPublicKeys: (name: string) => Promise<string>;
+  getPrivateKeyFromMyPrivateKeys: (name: string) => Promise<SerialisablePrivateKey>;
+  getPublicKeyFromMyPrivateKeys: (name: string) => Promise<SerialisablePublicKey>;
+  getPublicKeyFromMyPublicKeys: (name: string) => Promise<SerialisablePublicKey>;
   deletePrivateKey: (keyname: string) => void;
   deletePublicKey: (keyname: string) => void;
 };
@@ -92,50 +92,40 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
   },
   getPrivateKeyFromMyPrivateKeys: async (keyid) => {
     const { myPrivateKeys } = get();
-
     const key = myPrivateKeys.find((key) => key.id == keyid);
-
     if (!key) throw new Error("no key found with that id (" + keyid + ")");
-
-    const privateKey = await openpgp.readPrivateKey({
-      armoredKey: key.key,
-    });
-
-    return key.key.toString();
+    return key;
   },
-  getPublicKeyFromMyPrivateKeys: async (keyname) => {
+  getPublicKeyFromMyPrivateKeys: async (keyid) => {
     const { myPrivateKeys } = get();
-
-    const key = myPrivateKeys.find((key) => key.id == keyname);
-
-    if (!key) throw new Error("no key found with that id(" + keyname + ")");
-
+    const key = myPrivateKeys.find((key) => key.id == keyid);
+    if (!key) throw new Error("no key found with that id(" + keyid+ ")");
     const privateKey = await openpgp.readPrivateKey({
       armoredKey: key.key,
     });
     const publicKey = privateKey.toPublic();
-
     const publicKeyArmorStringFormat = publicKey.armor();
-
-    return publicKeyArmorStringFormat;
+    
+    return {
+      id: key.id,
+      keyname: key.keyname,
+      key: publicKeyArmorStringFormat
+    };
   },
-  getPublicKeyFromMyPublicKeys: async (keyname) => {
+  getPublicKeyFromMyPublicKeys: async (keyid) => {
     const { myPublicKeys } = get();
-
-    const foundKey = myPublicKeys.find((key) => key.id == keyname);
-
+    const foundKey = myPublicKeys.find((key) => key.id == keyid);
     if (!foundKey) throw new Error("no key found with that id");
-    const { key } = foundKey;
-    return key;
+    return foundKey;
   },
-  deletePrivateKey: (keyname: string) => {
+  deletePrivateKey: (keyid: string) => {
     const { myPrivateKeys } = get();
-    const filteredKeys = myPrivateKeys.filter(key => key.id !== keyname);
+    const filteredKeys = myPrivateKeys.filter(key => key.id !== keyid);
     set({ myPrivateKeys: filteredKeys });
   },
-  deletePublicKey: (keyname: string) => {
+  deletePublicKey: (keyid: string) => {
     const { myPublicKeys } = get();
-    const filteredKeys = myPublicKeys.filter(key => key.id !== keyname);
+    const filteredKeys = myPublicKeys.filter(key => key.id !== keyid);
     set({ myPublicKeys: filteredKeys });
   },
   myPrivateKeys: [],

@@ -22,8 +22,9 @@ export default function PrivateKeyPage({
 }: {
   params: { keyid: string };
 }) {
-  const [privateKey, setPrivateKey] = useState("loading...");
-  const [publicKey, setPublicKey] = useState("loading...");
+  const [privateKey, setPrivateKey] = useState("");
+  const [publicKey, setPublicKey] = useState("");
+  const [keyname, setKeyname] = useState("");
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +46,9 @@ export default function PrivateKeyPage({
           myKeyStore.getPrivateKeyFromMyPrivateKeys(keyid),
           myKeyStore.getPublicKeyFromMyPrivateKeys(keyid),
         ]);
-        setPrivateKey(privateKeyData);
-        setPublicKey(publicKeyData);
+        setKeyname(privateKeyData.keyname);
+        setPrivateKey(privateKeyData.key);
+        setPublicKey(publicKeyData.key);
       } catch (err) {
         setError(`Failed to load keys: ${err}`);
       } finally {
@@ -58,12 +60,13 @@ export default function PrivateKeyPage({
 
   const handleDecipher = async () => {
     if (!message.trim()) {
-      setError("Please enter a message to decrypt");
+      setError("Please enter a message to decipher");
       return;
     }
 
     setIsLoading(true);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       const pgpMessage = await openpgp.readMessage({
         armoredMessage: message,
       });
@@ -74,7 +77,7 @@ export default function PrivateKeyPage({
       });
       setMessage(data.toString());
     } catch (err) {
-      setError("Failed to decrypt message. (Signed for the wrong key?))");
+      setError("Failed to decipher message. (Signed for the wrong key?))");
     } finally {
       setIsLoading(false);
     }
@@ -130,7 +133,7 @@ export default function PrivateKeyPage({
             <Shield className="w-6 h-6 text-cyan-400" />
           </div>
           <h1 className="text-2xl font-bold text-cyan-50">
-            Private Key: <span className="text-cyan-400">{keyid}</span>
+            Private Key: <span className="text-cyan-400">{keyname}</span>
           </h1>
         </div>
 
@@ -181,13 +184,13 @@ export default function PrivateKeyPage({
         <section className="bg-slate-900/50 rounded-xl border border-cyan-800/30 p-6">
           <div className="flex items-center space-x-2 text-cyan-400 mb-4">
             <Lock className="w-5 h-5" />
-            <h3 className="font-medium">Decrypt Message</h3>
+            <h3 className="font-medium">Decipher Message</h3>
           </div>
           <div className="relative h-[calc(100%-3rem)]">
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Enter an encrypted PGP message to decrypt..."
+              placeholder="Enter a ciphered PGP message to decipher..."
               className="w-full h-full resize-none rounded-lg bg-slate-800/50 border border-cyan-800/30 p-4 text-cyan-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
             />
             <button
@@ -196,7 +199,7 @@ export default function PrivateKeyPage({
               className="absolute right-4 bottom-4 px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors flex items-center gap-2"
             >
               <Lock className="w-4 h-4" />
-              Decrypt
+              Decipher
             </button>
           </div>
         </section>

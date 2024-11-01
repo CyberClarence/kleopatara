@@ -19,9 +19,9 @@ export default function MyAppLayout({ children }: MyAppLayoutProps) {
   return (
     <>
       <Hydrate />
-      <div className="flex w-full h-full overflow-auto ">
+      <div className="flex w-full h-full overflow-hidden">
         <MySideBar />
-        <div className="flex flex-col overflow-auto h-full w-full">
+        <div className="flex-1 overflow-auto w-full pt-20 lg:pt-0">
           {children}
         </div>
       </div>
