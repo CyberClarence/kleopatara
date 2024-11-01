@@ -31,6 +31,8 @@ type KeyStoreActions = {
   getPrivateKeyFromMyPrivateKeys: (name: string) => Promise<string>;
   getPublicKeyFromMyPrivateKeys: (name: string) => Promise<string>;
   getPublicKeyFromMyPublicKeys: (name: string) => Promise<string>;
+  deletePrivateKey: (keyname: string) => void;
+  deletePublicKey: (keyname: string) => void;
 };
 
 type KeyStoreInterface = KeyStoreData & KeyStoreActions;
@@ -120,6 +122,16 @@ export const keyStore: StateCreator<KeyStoreInterface> = (set, get) => ({
     if (!foundKey) throw new Error("no key found with that id");
     const { key } = foundKey;
     return key;
+  },
+  deletePrivateKey: (keyname: string) => {
+    const { myPrivateKeys } = get();
+    const filteredKeys = myPrivateKeys.filter(key => key.id !== keyname);
+    set({ myPrivateKeys: filteredKeys });
+  },
+  deletePublicKey: (keyname: string) => {
+    const { myPublicKeys } = get();
+    const filteredKeys = myPublicKeys.filter(key => key.id !== keyname);
+    set({ myPublicKeys: filteredKeys });
   },
   myPrivateKeys: [],
   myPublicKeys: [],

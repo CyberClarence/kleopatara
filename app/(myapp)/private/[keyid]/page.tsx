@@ -2,6 +2,20 @@
 import * as openpgp from "openpgp";
 import { useKeyStore } from "@/feature/keystore";
 import { useEffect, useState } from "react";
+import {
+  Shield,
+  Key,
+  FileText,
+  Trash2,
+  Copy,
+  CheckCircle2,
+  Lock,
+  AlertCircle,
+  Pen,
+} from "lucide-react";
+import { Dialog } from "@/components/ui/dialog";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useRouter } from "next/navigation";
 
 export default function PrivateKeyPage({
   params: { keyid },
@@ -11,91 +25,275 @@ export default function PrivateKeyPage({
   const [privateKey, setPrivateKey] = useState("loading...");
   const [publicKey, setPublicKey] = useState("loading...");
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [showSignDialog, setShowSignDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [textToSign, setTextToSign] = useState("");
+  const [signature, setSignature] = useState("");
+
+  const router = useRouter();
+  const deletePrivateKey = useKeyStore((s) => s.deletePrivateKey);
 
   useEffect(() => {
-    const init0 = async () => {
+    const loadKeys = async () => {
+      setIsLoading(true);
       try {
-        const armoredPrivateKey = await useKeyStore
-          .getState()
-          .getPrivateKeyFromMyPrivateKeys(keyid);
-
-        setPrivateKey(armoredPrivateKey);
+        const myKeyStore = useKeyStore.getState();
+        const [privateKeyData, publicKeyData] = await Promise.all([
+          myKeyStore.getPrivateKeyFromMyPrivateKeys(keyid),
+          myKeyStore.getPublicKeyFromMyPrivateKeys(keyid),
+        ]);
+        setPrivateKey(privateKeyData);
+        setPublicKey(publicKeyData);
       } catch (err) {
-        setPrivateKey(`Error: ${err}`);
+        setError(`Failed to load keys: ${err}`);
+      } finally {
+        setIsLoading(false);
       }
     };
-    const init1 = async () => {
-      setPublicKey("loading yes !");
-      try {
-        const myKeyStore = await useKeyStore.getState();
-        const armoredPublicKey = await myKeyStore.getPublicKeyFromMyPrivateKeys(
-          keyid
-        );
-        console.log(armoredPublicKey);
+    loadKeys();
+  }, [keyid]);
 
-        setPublicKey(armoredPublicKey);
-      } catch (err) {
-        setPublicKey(`Error: ${err}`);
-      }
-    };
-    init0();
-    init1();
-  }, []);
   const handleCipher = async () => {
+    if (!message.trim()) {
+      setError("Please enter a message to decrypt");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      var pgpMessage = await openpgp.readMessage({
+      const pgpMessage = await openpgp.readMessage({
         armoredMessage: message,
       });
-    } catch {
-      return alert("le message n'est pas du PGP");
+      const key = await openpgp.readPrivateKey({ armoredKey: privateKey });
+      const { data } = await openpgp.decrypt({
+        decryptionKeys: key,
+        message: pgpMessage,
+      });
+      setMessage(data.toString());
+    } catch (err) {
+      setError("Failed to decrypt message. Is this a valid PGP message?");
+    } finally {
+      setIsLoading(false);
     }
-    const key = await openpgp.readPrivateKey({ armoredKey: privateKey });
-    const { data } = await openpgp.decrypt({
-      decryptionKeys: key,
-      message: pgpMessage,
-    });
+  };
 
-    setMessage(data.toString());
+  const handleSign = async () => {
+    if (!textToSign.trim()) {
+      setError("Please enter text to sign");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      const privateKeyObj = await openpgp.readPrivateKey({
+        armoredKey: privateKey,
+      });
+      const message = await openpgp.createMessage({ text: textToSign });
+      const signature = await openpgp.sign({
+        message,
+        signingKeys: privateKeyObj,
+      });
+      setSignature(signature.toString());
+    } catch (err) {
+      setError("Failed to create signature");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCopyPublicKey = async () => {
+    await navigator.clipboard.writeText(publicKey);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDeleteKey = () => {
+    try {
+      deletePrivateKey(keyid);
+      setShowDeleteDialog(false);
+      router.push("/");
+    } catch (err) {
+      setError("Failed to delete key");
+    }
   };
 
   return (
-    <div className="flex flex-col p-4 h-full w-full overflow-auto gap-4">
-      <h2 className="underline text-2xl"> clef de {keyid}</h2>
-      <div className="p-2 border h-full w-full overflow-auto ">
-        <div className="flex h-1/2 w-full flex-col border">
-          <h3 className="flex">
-            Your public key{" "}
-            {
-              "(share it to your friend so he can send you chiphered messages than only you can decrypt with this key)"
-            }
-          </h3>
-          <textarea
-            className="flex h-full w-full text-white bg-gray-800 border p-2 rounded"
-            onChange={() => {
-              // tu fais rien ok c'est normal et comme ça on a pas de warning dans la console
-            }}
-            value={publicKey}
-            disabled={false}
-          />
+    <div className="flex flex-col p-6 h-full w-full overflow-auto space-y-6">
+      <div className="flex justify-between items-center ">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 rounded-xl bg-cyan-500/10 shadow-inner">
+            <Shield className="w-6 h-6 text-cyan-400" />
+          </div>
+          <h1 className="text-2xl font-bold text-cyan-50">
+            Private Key: <span className="text-cyan-400">{keyid}</span>
+          </h1>
         </div>
-        <div className="flex w-full h-1/2 flex-col">
-          <h2>deciphering</h2>
-          <div className="flex w-full h-full gap-2">
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => setShowSignDialog(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 transition-all"
+          >
+            <Pen className="w-4 h-4" />
+            Sign Message
+          </button>
+          <button
+            onClick={() => setShowDeleteDialog(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-300 transition-all"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Key
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-auto grid-flow-row gap-6 flex-1">
+        <section className="bg-slate-900/50 rounded-xl border border-cyan-800/30 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2 text-cyan-400">
+              <Key className="w-5 h-5" />
+              <h3 className="font-medium">Public Key</h3>
+            </div>
+            <button
+              onClick={handleCopyPublicKey}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-sm transition-all"
+            >
+              {copied ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+              {copied ? "Copied!" : "Copy Key"}
+            </button>
+          </div>
+          <textarea
+            className="w-full h-[calc(100%-3rem)] resize-none rounded-lg bg-slate-800/50 border border-cyan-800/30 p-4 text-cyan-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            value={publicKey}
+            readOnly
+          />
+        </section>
+
+        <section className="bg-slate-900/50 rounded-xl border border-cyan-800/30 p-6">
+          <div className="flex items-center space-x-2 text-cyan-400 mb-4">
+            <Lock className="w-5 h-5" />
+            <h3 className="font-medium">Decrypt Message</h3>
+          </div>
+          <div className="relative h-[calc(100%-3rem)]">
             <textarea
               value={message}
-              onChange={(ev) => setMessage(ev.currentTarget.value)}
-              className="flex h-full w-full text-white bg-gray-800 border p-2 rounded"
-              placeholder="enter your message that you want to decipher"
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Enter an encrypted PGP message to decrypt..."
+              className="w-full h-full resize-none rounded-lg bg-slate-800/50 border border-cyan-800/30 p-4 text-cyan-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
             />
             <button
-              className="bg-red-600 w-fit rounded border"
               onClick={handleCipher}
+              disabled={!message.trim()}
+              className="absolute right-4 bottom-4 px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium transition-colors flex items-center gap-2"
             >
-              Decipher !
+              <Lock className="w-4 h-4" />
+              Decrypt
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* Dialogs */}
+      <Dialog
+        isOpen={showSignDialog}
+        onClose={() => {
+          setShowSignDialog(false);
+          setTextToSign("");
+          setSignature("");
+        }}
+        title="Sign Message"
+      >
+        <div className="space-y-4">
+          <textarea
+            value={textToSign}
+            onChange={(e) => setTextToSign(e.target.value)}
+            placeholder="Enter text to sign..."
+            className="w-full h-32 bg-slate-800 border border-cyan-800/30 rounded-lg p-3 text-cyan-100"
+          />
+          {signature && (
+            <div className="relative">
+              <textarea
+                value={signature}
+                readOnly
+                className="w-full h-32 bg-slate-800 border border-cyan-800/30 rounded-lg p-3 text-cyan-100"
+              />
+              <button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(signature);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="absolute right-2 top-2 flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-sm transition-all"
+              >
+                {copied ? (
+                  <CheckCircle2 className="w-4 h-4" />
+                ) : (
+                  <Copy className="w-4 h-4" />
+                )}
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          )}
+          <button
+            onClick={handleSign}
+            className="w-full py-2 bg-cyan-500 hover:bg-cyan-600 rounded-lg transition-colors text-white"
+          >
+            {signature ? "Renerate Signature" : "Generate Signature"}
+          </button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        isOpen={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        title="Delete Private Key"
+      >
+        <div className="space-y-4">
+          <p className="text-red-300">
+            Warning: Deleting this private key is permanent and cannot be
+            undone. Make sure you have a backup if needed.
+          </p>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowDeleteDialog(false)}
+              className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg transition-colors"
+              onClick={handleDeleteKey}
+            >
+              Delete Permanently
             </button>
           </div>
         </div>
-      </div>
+      </Dialog>
+
+      {isLoading && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-slate-800 border border-cyan-800/30 rounded-lg p-6 flex flex-col items-center space-y-4">
+            <LoadingSpinner className="w-8 h-8 text-cyan-400" />
+            <p className="text-cyan-300">Processing...</p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-red-900/90 text-red-100 p-4 rounded-lg flex items-center gap-2 animate-in slide-in-from-bottom">
+          <AlertCircle className="w-5 h-5" />
+          {error}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Kleopatra PGP Client",
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`flex flex-col overflow-auto w-screen h-screen bg-black text-white ${inter.className} select-none`}
+        className={`flex flex-col overflow-auto w-screen h-screen bg-[#0A192F] text-white ${jetbrainsMono.className} select-none`}
       >
         {children}
       </body>
